@@ -16,26 +16,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Alumni } from "@/types"; // Assuming Alumni type is defined
+import type { Alumni } from "@/types"; // Use type import
 
 const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Invalid email address."),
-  graduationYear: z.coerce.number().min(1900, "Invalid year.").max(new Date().getFullYear() + 5, "Invalid year."),
+  graduationYear: z.coerce.number().min(1900, "Invalid year.").max(new Date().getFullYear() + 10, "Invalid year."), // Allow a bit more into future for planning
   major: z.string().min(2, "Major is required."),
   currentCompany: z.string().optional(),
   jobTitle: z.string().optional(),
   industry: z.string().optional(),
   interests: z.string().optional().describe("Comma-separated interests"),
   bio: z.string().max(500, "Bio cannot exceed 500 characters.").optional(),
-  imageUrl: z.string().url("Invalid URL for profile picture.").optional(),
-  linkedinUrl: z.string().url("Invalid LinkedIn URL.").optional(),
+  imageUrl: z.preprocess(
+    (val) => (val === "" ? undefined : val), // Treat empty string as undefined
+    z.string().url("Invalid URL for profile picture. Please enter a valid web address (e.g., https://example.com/image.png) or leave blank.").optional()
+  ),
+  linkedinUrl: z.preprocess(
+    (val) => (val === "" ? undefined : val), // Treat empty string as undefined
+    z.string().url("Invalid LinkedIn URL. Please enter a valid web address (e.g., https://linkedin.com/in/yourprofile) or leave blank.").optional()
+  ),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 // This can be fetched from a database in a real application
-const defaultValues: Partial<ProfileFormValues> = {
+// For now, ensure optional fields are truly undefined or empty strings if that's how the form initializes them.
+const defaultValues: ProfileFormValues = {
   name: "",
   email: "",
   graduationYear: new Date().getFullYear(),
@@ -45,8 +52,8 @@ const defaultValues: Partial<ProfileFormValues> = {
   industry: "",
   interests: "",
   bio: "",
-  imageUrl: "",
-  linkedinUrl: "",
+  imageUrl: undefined, // Explicitly undefined for optional URL
+  linkedinUrl: undefined, // Explicitly undefined for optional URL
 };
 
 export default function ProfileForm() {
@@ -54,22 +61,32 @@ export default function ProfileForm() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
-    mode: "onChange",
+    mode: "onChange", // Validate on change to give immediate feedback
   });
 
   function onSubmit(data: ProfileFormValues) {
     // In a real app, you would send this data to your backend
-    console.log(data);
+    console.log("Form data submitted:", data);
+    
+    // Process data before "saving"
     const alumniData: Alumni = {
-        id: 'temp-id', // generate or fetch actual ID
+        id: `alumni_${Date.now()}`, // Example: generate a unique ID, or get from auth/DB
         ...data,
-        interests: data.interests?.split(',').map(interest => interest.trim()).filter(interest => interest !== ''),
+        // Ensure optional fields that should be undefined if empty are handled
+        imageUrl: data.imageUrl || undefined,
+        linkedinUrl: data.linkedinUrl || undefined,
+        currentCompany: data.currentCompany || undefined,
+        jobTitle: data.jobTitle || undefined,
+        industry: data.industry || undefined,
+        bio: data.bio || undefined,
+        interests: data.interests?.split(',').map(interest => interest.trim()).filter(interest => interest !== '') || undefined,
     };
-    console.log("Processed alumni data:", alumniData);
+    console.log("Processed alumni data for saving:", alumniData);
 
     toast({
       title: "Profile Updated",
       description: "Your alumni profile has been successfully updated.",
+      variant: "default", // Explicitly set variant if needed, default is usually fine
     });
   }
 
@@ -113,7 +130,7 @@ export default function ProfileForm() {
               <FormItem>
                 <FormLabel>Graduation Year</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 2015" {...field} />
+                  <Input type="number" placeholder={`e.g., ${new Date().getFullYear()}`} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -140,9 +157,9 @@ export default function ProfileForm() {
             name="currentCompany"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Current Company (Optional)</FormLabel>
+                <FormLabel>Current Company <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Tech Solutions Inc." {...field} />
+                  <Input placeholder="e.g., Tech Solutions Inc." {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -153,9 +170,9 @@ export default function ProfileForm() {
             name="jobTitle"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Job Title (Optional)</FormLabel>
+                <FormLabel>Job Title <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Software Engineer" {...field} />
+                  <Input placeholder="e.g., Software Engineer" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -168,9 +185,9 @@ export default function ProfileForm() {
           name="industry"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Industry (Optional)</FormLabel>
+              <FormLabel>Industry <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Technology, Healthcare, Finance" {...field} />
+                <Input placeholder="e.g., Technology, Healthcare, Finance" {...field} value={field.value ?? ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -181,9 +198,9 @@ export default function ProfileForm() {
           name="interests"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Interests (Optional)</FormLabel>
+              <FormLabel>Interests <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
               <FormControl>
-                <Input placeholder="e.g., AI, Hiking, Photography (comma-separated)" {...field} />
+                <Input placeholder="e.g., AI, Hiking, Photography (comma-separated)" {...field} value={field.value ?? ""} />
               </FormControl>
               <FormDescription>
                 Share some of your professional or personal interests.
@@ -197,12 +214,13 @@ export default function ProfileForm() {
           name="bio"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Short Bio (Optional)</FormLabel>
+              <FormLabel>Short Bio <span className="text-muted-foreground text-xs">(Optional, max 500 characters)</span></FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Tell us a little bit about yourself and your achievements."
                   className="resize-y min-h-[100px]"
                   {...field}
+                  value={field.value ?? ""}
                 />
               </FormControl>
               <FormMessage />
@@ -214,10 +232,13 @@ export default function ProfileForm() {
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Profile Picture URL (Optional)</FormLabel>
+              <FormLabel>Profile Picture URL <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
               <FormControl>
-                <Input type="url" placeholder="https://example.com/your-image.jpg" {...field} />
+                <Input type="url" placeholder="https://example.com/your-image.jpg" {...field} value={field.value ?? ""} />
               </FormControl>
+               <FormDescription>
+                A direct link to your profile picture (e.g., from LinkedIn or a cloud storage).
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -227,9 +248,9 @@ export default function ProfileForm() {
           name="linkedinUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>LinkedIn Profile URL (Optional)</FormLabel>
+              <FormLabel>LinkedIn Profile URL <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
               <FormControl>
-                <Input type="url" placeholder="https://linkedin.com/in/yourprofile" {...field} />
+                <Input type="url" placeholder="https://linkedin.com/in/yourprofile" {...field} value={field.value ?? ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
