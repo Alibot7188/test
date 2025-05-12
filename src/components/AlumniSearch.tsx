@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -12,9 +13,11 @@ interface AlumniSearchProps {
   allAlumni: Alumni[];
 }
 
+const ALL_INDUSTRIES_VALUE = "__ALL_INDUSTRIES__"; // Special value for "All Industries"
+
 export default function AlumniSearch({ allAlumni }: AlumniSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [industryFilter, setIndustryFilter] = useState('');
+  const [industryFilter, setIndustryFilter] = useState(ALL_INDUSTRIES_VALUE);
   const [jobTitleFilter, setJobTitleFilter] = useState('');
   const [filteredAlumni, setFilteredAlumni] = useState<Alumni[]>(allAlumni);
 
@@ -29,12 +32,12 @@ export default function AlumniSearch({ allAlumni }: AlumniSearchProps) {
     if (searchTerm) {
       result = result.filter(alumni =>
         alumni.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        alumni.major.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (alumni.major && alumni.major.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (alumni.bio && alumni.bio.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
-    if (industryFilter) {
+    if (industryFilter !== ALL_INDUSTRIES_VALUE) {
       result = result.filter(alumni => alumni.industry === industryFilter);
     }
     
@@ -49,7 +52,7 @@ export default function AlumniSearch({ allAlumni }: AlumniSearchProps) {
 
   const resetFilters = () => {
     setSearchTerm('');
-    setIndustryFilter('');
+    setIndustryFilter(ALL_INDUSTRIES_VALUE);
     setJobTitleFilter('');
   };
 
@@ -82,7 +85,7 @@ export default function AlumniSearch({ allAlumni }: AlumniSearchProps) {
                 <SelectValue placeholder="All Industries" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value={ALL_INDUSTRIES_VALUE}>All Industries</SelectItem>
                 {industries.map(industry => (
                   <SelectItem key={industry} value={industry}>
                     {industry}
