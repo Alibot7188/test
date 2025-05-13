@@ -13,17 +13,24 @@ interface AlumniSearchProps {
   allAlumni: Alumni[];
 }
 
-const ALL_INDUSTRIES_VALUE = "__ALL_INDUSTRIES__"; // Special value for "All Industries"
+const ALL_INDUSTRIES_VALUE = "__ALL_INDUSTRIES__";
+const ALL_MAJORS_VALUE = "__ALL_MAJORS__";
 
 export default function AlumniSearch({ allAlumni }: AlumniSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [industryFilter, setIndustryFilter] = useState(ALL_INDUSTRIES_VALUE);
+  const [majorFilter, setMajorFilter] = useState(ALL_MAJORS_VALUE);
   const [jobTitleFilter, setJobTitleFilter] = useState('');
   const [filteredAlumni, setFilteredAlumni] = useState<Alumni[]>(allAlumni);
 
   const industries = useMemo(() => {
     const uniqueIndustries = new Set(allAlumni.map(a => a.industry).filter(Boolean));
-    return Array.from(uniqueIndustries) as string[];
+    return Array.from(uniqueIndustries).sort() as string[];
+  }, [allAlumni]);
+
+  const majors = useMemo(() => {
+    const uniqueMajors = new Set(allAlumni.map(a => a.major).filter(Boolean));
+    return Array.from(uniqueMajors).sort() as string[];
   }, [allAlumni]);
 
   useEffect(() => {
@@ -40,6 +47,10 @@ export default function AlumniSearch({ allAlumni }: AlumniSearchProps) {
     if (industryFilter !== ALL_INDUSTRIES_VALUE) {
       result = result.filter(alumni => alumni.industry === industryFilter);
     }
+
+    if (majorFilter !== ALL_MAJORS_VALUE) {
+      result = result.filter(alumni => alumni.major === majorFilter);
+    }
     
     if (jobTitleFilter) {
        result = result.filter(alumni => 
@@ -48,28 +59,29 @@ export default function AlumniSearch({ allAlumni }: AlumniSearchProps) {
     }
 
     setFilteredAlumni(result);
-  }, [searchTerm, industryFilter, jobTitleFilter, allAlumni]);
+  }, [searchTerm, industryFilter, majorFilter, jobTitleFilter, allAlumni]);
 
   const resetFilters = () => {
     setSearchTerm('');
     setIndustryFilter(ALL_INDUSTRIES_VALUE);
+    setMajorFilter(ALL_MAJORS_VALUE);
     setJobTitleFilter('');
   };
 
   return (
     <div className="space-y-8">
       <div className="p-6 bg-card rounded-lg shadow space-y-4">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div>
             <label htmlFor="search-term" className="block text-sm font-medium text-muted-foreground mb-1">
-              Search by Name, Major, or Bio
+              Search Name, Major, Bio
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 id="search-term"
                 type="text"
-                placeholder="e.g., John Doe, Engineering, AI expert..."
+                placeholder="e.g., John Doe, Engineering..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -87,8 +99,26 @@ export default function AlumniSearch({ allAlumni }: AlumniSearchProps) {
               <SelectContent>
                 <SelectItem value={ALL_INDUSTRIES_VALUE}>All Industries</SelectItem>
                 {industries.map(industry => (
-                  <SelectItem key={industry} value={industry}>
-                    {industry}
+                  <SelectItem key={industry} value={industry || 'unknown-industry'}> {/* Ensure value is not empty */}
+                    {industry || "N/A"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label htmlFor="major-filter" className="block text-sm font-medium text-muted-foreground mb-1">
+              Filter by Major/Branch
+            </label>
+            <Select value={majorFilter} onValueChange={setMajorFilter}>
+              <SelectTrigger id="major-filter">
+                <SelectValue placeholder="All Majors" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_MAJORS_VALUE}>All Majors</SelectItem>
+                {majors.map(major => (
+                  <SelectItem key={major} value={major || 'unknown-major'}> {/* Ensure value is not empty */}
+                    {major || "N/A"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -126,3 +156,4 @@ export default function AlumniSearch({ allAlumni }: AlumniSearchProps) {
     </div>
   );
 }
+

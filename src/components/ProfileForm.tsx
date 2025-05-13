@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,19 +30,17 @@ const profileFormSchema = z.object({
   interests: z.string().optional().describe("Comma-separated interests"),
   bio: z.string().max(500, "Bio cannot exceed 500 characters.").optional(),
   imageUrl: z.preprocess(
-    (val) => (val === "" ? undefined : val), // Treat empty string as undefined
-    z.string().url("Invalid URL for profile picture. Please enter a valid web address (e.g., https://example.com/image.png) or leave blank.").optional()
+    (val) => (val === "" ? undefined : val), 
+    z.string().url("Invalid URL. Must be a valid web address or blank.").optional().or(z.literal(undefined))
   ),
   linkedinUrl: z.preprocess(
-    (val) => (val === "" ? undefined : val), // Treat empty string as undefined
-    z.string().url("Invalid LinkedIn URL. Please enter a valid web address (e.g., https://linkedin.com/in/yourprofile) or leave blank.").optional()
+    (val) => (val === "" ? undefined : val), 
+    z.string().url("Invalid URL. Must be a valid web address or blank.").optional().or(z.literal(undefined))
   ),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// This can be fetched from a database in a real application
-// For now, ensure optional fields are truly undefined or empty strings if that's how the form initializes them.
 const defaultValues: ProfileFormValues = {
   name: "",
   email: "",
@@ -52,8 +51,8 @@ const defaultValues: ProfileFormValues = {
   industry: "",
   interests: "",
   bio: "",
-  imageUrl: undefined, // Explicitly undefined for optional URL
-  linkedinUrl: undefined, // Explicitly undefined for optional URL
+  imageUrl: undefined, 
+  linkedinUrl: undefined, 
 };
 
 export default function ProfileForm() {
@@ -61,18 +60,15 @@ export default function ProfileForm() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
-    mode: "onChange", // Validate on change to give immediate feedback
+    mode: "onChange", 
   });
 
   function onSubmit(data: ProfileFormValues) {
-    // In a real app, you would send this data to your backend
     console.log("Form data submitted:", data);
     
-    // Process data before "saving"
     const alumniData: Alumni = {
-        id: `alumni_${Date.now()}`, // Example: generate a unique ID, or get from auth/DB
+        id: `alumni_${Date.now()}`, 
         ...data,
-        // Ensure optional fields that should be undefined if empty are handled
         imageUrl: data.imageUrl || undefined,
         linkedinUrl: data.linkedinUrl || undefined,
         currentCompany: data.currentCompany || undefined,
@@ -86,7 +82,7 @@ export default function ProfileForm() {
     toast({
       title: "Profile Updated",
       description: "Your alumni profile has been successfully updated.",
-      variant: "default", // Explicitly set variant if needed, default is usually fine
+      variant: "default", 
     });
   }
 
@@ -237,7 +233,7 @@ export default function ProfileForm() {
                 <Input type="url" placeholder="https://example.com/your-image.jpg" {...field} value={field.value ?? ""} />
               </FormControl>
                <FormDescription>
-                A direct link to your profile picture (e.g., from LinkedIn or a cloud storage).
+                A direct link to your profile picture (e.g., from LinkedIn or a cloud storage). Leave blank if not applicable.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -252,6 +248,9 @@ export default function ProfileForm() {
               <FormControl>
                 <Input type="url" placeholder="https://linkedin.com/in/yourprofile" {...field} value={field.value ?? ""} />
               </FormControl>
+               <FormDescription>
+                Provide a link to your LinkedIn profile. Leave blank if not applicable.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
