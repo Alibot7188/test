@@ -1,8 +1,8 @@
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alumni } from '@/types';
-import { Briefcase, GraduationCap, Star, Link as LinkIcon } from 'lucide-react';
+import type { Alumni } from '@/types'; // Use type import
+import { Briefcase, GraduationCap, Star, Link } from 'lucide-react';
 
 interface AlumniCardProps {
   alumni: Alumni;
@@ -60,7 +60,7 @@ export default function AlumniCard({ alumni }: AlumniCardProps) {
             rel="noopener noreferrer"
             className="text-accent hover:text-accent/80 flex items-center gap-1 text-sm"
           >
-            <LinkIcon className="w-4 h-4" /> LinkedIn Profile
+            <Link className="w-4 h-4" /> LinkedIn Profile
           </a>
         )}
       </CardFooter>

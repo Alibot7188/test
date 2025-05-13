@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, Zap, Search, Link as LinkIcon } from "lucide-react";
+import { Users, Calendar, Zap, Search, Link } from "lucide-react";
 import NextLink from "next/link";
 import Image from "next/image";
 
@@ -59,7 +59,7 @@ export default function HomePage() {
             linkText="Search Alumni"
           />
           <FeatureCard
-            icon={<LinkIcon className="w-10 h-10 text-accent" />}
+            icon={<Link className="w-10 h-10 text-accent" />}
             title="Intelligent Recommendations"
             description="Discover relevant alumni connections tailored to your interests and career goals."
             link="/recommendations"
