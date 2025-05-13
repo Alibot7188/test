@@ -1,6 +1,7 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, Users, Calendar, UserCircle, Brain, GraduationCap } from 'lucide-react';
+import { Home, Users, Calendar, UserCircle, Brain, GraduationCap, LayoutDashboard } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -8,6 +9,7 @@ const navItems = [
   { href: '/events', label: 'Events', icon: Calendar },
   { href: '/recommendations', label: 'Recommendations', icon: Brain },
   { href: '/profile', label: 'Profile', icon: UserCircle },
+  { href: '/alumni-dashboard', label: 'Dashboard', icon: LayoutDashboard }, // New Dashboard link
 ];
 
 export default function Header() {
@@ -38,3 +40,4 @@ export default function Header() {
     </header>
   );
 }
+
